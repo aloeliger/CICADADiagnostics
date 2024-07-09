@@ -196,7 +196,7 @@ class RegionPatternSet(PatternSet):
         
         linkLine = 'WordCnt'
         for i in range(36):
-            linkQuote = f'LINK_{i}'
+            linkQuote = f'LINK_{i:02d}'
             linkString = f'{linkQuote:^12}'
             linkLine+= linkString
         linkLine += '\n'
@@ -218,13 +218,14 @@ class ModelScorePatternSet(PatternSet):
     def getCompletePatternString(self):
         result = ''
 
-        topLine = '='*18+'\n'
+        topLine = '='*30+'\n'
         result += topLine
         
         linkLine = 'WordCnt'
-        linkQuote = 'LINK_0'
-        linkString = f'{linkQuote:^12}'
-        linkLine += linkString
+        for i in range(2):
+            linkQuote = f'LINK_{i:02d}'
+            linkString = f'{linkQuote:^12}'
+            linkLine += linkString
         linkLine += '\n'
         result += linkLine
 
