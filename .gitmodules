@@ -1,0 +1,3 @@
+[submodule "fedDumpingTool"]
+	path = fedDumpingTool
+	url = git@github.com:aloeliger/fedDumpingTool.git
