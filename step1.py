@@ -87,7 +87,7 @@ def findRecommendedFile(dataset, runNumber):
     return recommendedFile
 
 def makeFEDDump(recommendedFile, outputDirectory):
-    fedDumpCommand = f'cmsRun fedDumpingTool/dumpFEDInfoFromRAW.py feds=1356,1405 inputFiles={recommendedFile} -n 10'
+    fedDumpCommand = f'cmsRun fedDumpingTool/dumpFEDInfoFromRAW.py feds=1356,1405 inputFiles={recommendedFile} maxEvents=10'
     theProcess = subprocess.run(
         [fedDumpCommand],
         shell=True,
@@ -96,6 +96,8 @@ def makeFEDDump(recommendedFile, outputDirectory):
     )
     if theProcess.returncode != 0:
         console.log(f':warning-emoji: [red]FED Dump command failed with exit code:[/red] {theProcess.returncode}')
+        console.log(f'Std err of process:')
+        console.print(theProcess.stderr.decode())
         console.log('Returning false')
         return False
     
