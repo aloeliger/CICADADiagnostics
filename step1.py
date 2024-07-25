@@ -131,25 +131,32 @@ def makeL1Ntuple(recommendedFile, outputDirectory):
     return True
 
 def main(args):
-    #First step. Try and find a dataset for this run.
-    #If we can't find it, we're done there, and error out
-    recommendedDataset = findGoodDataset(args.runNumber)
-    if recommendedDataset == None:
-        console.log(':warning-emoji: Could not find a dataset for this run number. Quitting.', style='red')
-        exit(1)
-    console.log(f':white_check_mark-emoji: [green]Found recommended dataset:[/green] {recommendedDataset}')
-    
-    # Second step. Now we go and find a file we can use
-    recommendedFile = findRecommendedFile(recommendedDataset, args.runNumber)
-    if recommendedDataset == None:
-        console.log(':warning-emoji: Could not find a file for this run number. Quitting.', style='red')
-        exit(1)
-    console.log(f':white_check_mark-emoji: [green]Found recommended file:[/green] {recommendedFile}')
+    if args.runNumber is not None:
+        runNumber = args.runNumber
+        #First step. Try and find a dataset for this run.
+        #If we can't find it, we're done there, and error out
+        recommendedDataset = findGoodDataset(args.runNumber)
+        if recommendedDataset == None:
+            console.log(':warning-emoji: Could not find a dataset for this run number. Quitting.', style='red')
+            exit(1)
+        console.log(f':white_check_mark-emoji: [green]Found recommended dataset:[/green] {recommendedDataset}')
+            
+        # Second step. Now we go and find a file we can use
+        recommendedFile = findRecommendedFile(recommendedDataset, args.runNumber)
+        if recommendedDataset == None:
+            console.log(':warning-emoji: Could not find a file for this run number. Quitting.', style='red')
+            exit(1)
+        console.log(f':white_check_mark-emoji: [green]Found recommended file:[/green] {recommendedFile}')
+    elif args.file is not None:
+        console.log(f'Running with forced file: {args.file}')
+        runNumber = 'DedicatedFile'
+        recommendedFile = args.file
 
+        
     # Third step. Set-up a directory we can use to store out output
     if args.outputDirectory == None:
         dateTimeStr = datetime.datetime.now().strftime('%b_%d_%Y_%H_%M')
-        outputDirectory = f'./Run{args.runNumber}_{dateTimeStr}'
+        outputDirectory = f'./Run{runNumber}_{dateTimeStr}'
         outputDirectory = Path(outputDirectory)
     else:
         outputDirectory = Path(args.outputDirectory)
@@ -179,13 +186,20 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run a full set of CICADA diagnostics for a given run")
 
-    parser.add_argument(
+    fileInputGroup = parser.add_mutually_exclusive_group(required=True)
+    fileInputGroup.add_argument(
         '--runNumber',
         type=int,
         nargs='?',
         help='Run number to try and find a suitable file for',
-        required=True
     )
+    fileInputGroup.add_argument(
+        '--file',
+        type=str,
+        nargs='?',
+        help='force the use of a particular file',        
+    )
+    
     parser.add_argument(
         '--outputDirectory',
         type=str,
