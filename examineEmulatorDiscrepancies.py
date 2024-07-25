@@ -9,9 +9,16 @@ from pathlib import Path
 import ROOT
 import termplotlib as tpl
 import numpy as np
+import statistics
 
 console = Console()
 
+def makeTermHistogram(theList):
+    counts, bin_edges = np.histogram(theList, bins=20)
+    histo = tpl.figure()
+    histo.hist(counts, bin_edges, orientation='horizontal')
+    histo.show()
+    
 def main(args):
     theFile = ROOT.TFile(args.ntupleFile)
     
@@ -21,10 +28,16 @@ def main(args):
     #emuTree.Print()
     #unpackTree.Print()
     nEntries = unpackTree.GetEntries()
+    emuScores = []
+    crateScores = []
+    emuOnlyScores = []
+    crateOnlyScores = []
     discrepancies = []
+    noDiscrepancyScores = []
     unpackedRegions = []
     emulatedRegions = []
     regionDiscrepancies=[]
+    nNoDiscrepancy = 0
     console.print(f'Processing: {nEntries:>6d} Events')
     #for index in track(range(nEntries), description='Finding discrepancies'):
     for index in range(nEntries):
@@ -34,8 +47,16 @@ def main(args):
         #discrepancy = emuTree.CICADAScore - unpackTree.CICADAScore
         emuScore = emuTree.GetLeaf("CICADAScore").GetValue()
         unpackScore = unpackTree.GetLeaf("CICADAScore").GetValue()
+        emuScores.append(emuScore)
+        crateScores.append(unpackScore)
         discrepancy = emuScore - unpackScore
         discrepancies.append(discrepancy)
+        if discrepancy == 0.0:
+            nNoDiscrepancy += 1
+            noDiscrepancyScores.append(emuScore)
+        else:
+            emuOnlyScores.append(emuScore)
+            crateOnlyScores.append(unpackScore)
 
         for i in range(252):
             emuRegion = emuTree.GetLeaf("modelInput").GetValue(i)
@@ -43,37 +64,46 @@ def main(args):
             unpackedRegions.append(unpackedRegion)
             emulatedRegions.append(emuRegion)
             regionDiscrepancies.append(emuRegion-unpackedRegion)
-        
-    console.print("Emulator - Calo Crate CICADA Score")
-    counts, bin_edges = np.histogram(discrepancies, bins=20)
-    histo = tpl.figure()
-    #histo.hist(counts, bin_edges, orientation='horizontal', force_ascii=True)
-    histo.hist(counts, bin_edges, orientation='horizontal')
-    histo.show()
+
+    console.print("Emulator scores")
+    makeTermHistogram(emuScores)
     console.print()
 
+    console.print("Unpacked Calo Crate Scores")
+    makeTermHistogram(crateScores)
+    console.print()
+    
+    console.print("Emulator - Calo Crate CICADA Score")
+    console.print(f"No Discrepancy: {nNoDiscrepancy/nEntries:2.2%}")
+    discrepancyMean = statistics.mean(discrepancies)
+    discrepancyStdDev = statistics.pstdev(discrepancies)
+    console.print(f'Mean Discrepancy: {discrepancyMean:2.2f}')
+    console.print(f'Discrepancy Std Deviation: {discrepancyStdDev:2.2f}')
+    makeTermHistogram(discrepancies)
+    console.print()
+
+    console.print("Agreed upon scores")
+    makeTermHistogram(noDiscrepancyScores)
+    console.print()
+
+    console.print("Crate Only Scores")
+    makeTermHistogram(crateOnlyScores)
+    console.print()
+
+    console.print("Emulator Only Scores")
+    makeTermHistogram(emuOnlyScores)
+    console.print()
+    
     console.print("Unpacked Region ETs")
-    counts, bin_edges = np.histogram(unpackedRegions, bins=20)
-    histo = tpl.figure()
-    #histo.hist(counts, bin_edges, orientation='horizontal', force_ascii=True)
-    histo.hist(counts, bin_edges, orientation='horizontal')
-    histo.show()
+    makeTermHistogram(unpackedRegions)
     console.print()
 
     console.print("Emulated Region ETs")
-    counts, bin_edges = np.histogram(emulatedRegions, bins=20)
-    histo = tpl.figure()
-    #histo.hist(counts, bin_edges, orientation='horizontal', force_ascii=True)
-    histo.hist(counts, bin_edges, orientation='horizontal')
-    histo.show()
+    makeTermHistogram(emulatedRegions)
     console.print()
 
     console.print("Region Discrepancies")
-    counts, bin_edges = np.histogram(regionDiscrepancies, bins=20)
-    histo = tpl.figure()
-    #histo.hist(counts, bin_edges, orientation='horizontal', force_ascii=True)
-    histo.hist(counts, bin_edges, orientation='horizontal')
-    histo.show()
+    makeTermHistogram(regionDiscrepancies)
     console.print()
 
 
