@@ -19,7 +19,7 @@ def main(args):
     emulatorChain = ROOT.TChain('l1CaloSummaryEmuTree/L1CaloSummaryTree')
 
     unpackedEventChain = ROOT.TChain('l1EventTree/L1EventTree')
-    unpackedChain = ROOT.TChain('l1CaloSummaryTree/L1CaloSummaryTree')
+    unpackedChain = ROOT.TChain('l1CaloSummaryTree/L1CaloSummaryTree')    
 
     for fileName in track(allFiles, description='Adding files'):
         emulatorEventChain.AddFile(fileName)
@@ -30,7 +30,7 @@ def main(args):
 
     emulatorChain.AddFriend(emulatorEventChain)
     unpackedChain.AddFriend(unpackedEventChain)
-
+    
     start_time = perf_counter()
     totalEntries = unpackedChain.GetEntries()
     end_time = perf_counter()
@@ -40,8 +40,11 @@ def main(args):
     totalEvents = {}
     mismatches = {}
 
-    noMismatchEvents = 0
+    nonZeroEventsMatches = {}
+    nonZeroEvents = {}
     
+    noMismatchEvents = 0
+
     for i in track(range(totalEntries), description='Looping events'):
         if i % args.skipFactor != 0:
             continue
@@ -49,23 +52,48 @@ def main(args):
         emulatorChain.GetEntry(i)
 
         run = int(unpackedChain.GetLeaf("run").GetValue())
+        #DEBUG
+        if run != 383162:
+            continue
+
+        event = int(unpackedChain.GetLeaf("event").GetValue())
         if run not in totalEvents:
             totalEvents[run] = 0
         totalEvents[run] += 1
         if run not in mismatches:
             mismatches[run] = 0
+        if run not in nonZeroEventsMatches:
+            nonZeroEventsMatches[run] = 0
+        if run not in nonZeroEvents:
+            nonZeroEvents[run] = 0
 
         unpackedScore = unpackedChain.GetLeaf("CICADAScore").GetValue()
         emulatorScore = emulatorChain.GetLeaf("CICADAScore").GetValue()
 
+
         discrepancy = emulatorScore - unpackedScore
+        #DEBUG
+        console.print(f'Run: {run}, Event: {event}, unpacked score: {unpackedScore}, emulator score: {emulatorScore}, discrepancy: {discrepancy}')
+
         if discrepancy != 0.0:
             mismatches[run] += 1
         else:
             noMismatchEvents += 1
 
+        if emulatorScore != 0.0:
+            nonZeroEvents[run] += 1
+            if discrepancy == 0.0:
+                nonZeroEventsMatches[run] += 1
+        
+
     for key in totalEvents:
-        console.print(f'Run: {key}, mismatches: {mismatches[key]:<9}/{totalEvents[key]:>9}, {mismatches[key]/totalEvents[key]:4.2%}')
+        display_nonZeroEvents = nonZeroEvents[key]
+        display_nonZeroEventsMatches = nonZeroEventsMatches[key]
+        try:
+            nonZeroMatchPercent = display_nonZeroEventsMatches / display_nonZeroEvents
+        except ZeroDivisionError:
+            nonZeroMatchPercent = 0.0
+        console.print(f'Run: {key}, mismatches: {mismatches[key]:<9}/{totalEvents[key]:>9}, {mismatches[key]/totalEvents[key]:05.2%}, non-zero emulator score matches: {nonZeroEventsMatches[key]:<9}/{nonZeroEvents[key]:>9}, {nonZeroMatchPercent:05.2%}')
     console.print(f'Number of events with emulator-firmware agreement: {noMismatchEvents}')
 
     mismatch_fractions = []
