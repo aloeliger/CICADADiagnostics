@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import termplotlib
 from time import perf_counter
+import math
 
 console = Console()
 
@@ -46,17 +47,15 @@ def main(args):
     noMismatchEvents = 0
 
     for i in track(range(totalEntries), description='Looping events'):
+        #for i in track(range(38000000,43000000), description='Looping events'):
         if i % args.skipFactor != 0:
             continue
         unpackedChain.GetEntry(i)
         emulatorChain.GetEntry(i)
 
         run = int(unpackedChain.GetLeaf("run").GetValue())
-        #DEBUG
-        if run != 383162:
-            continue
-
         event = int(unpackedChain.GetLeaf("event").GetValue())
+
         if run not in totalEvents:
             totalEvents[run] = 0
         totalEvents[run] += 1
@@ -72,8 +71,6 @@ def main(args):
 
 
         discrepancy = emulatorScore - unpackedScore
-        #DEBUG
-        console.print(f'Run: {run}, Event: {event}, unpacked score: {unpackedScore}, emulator score: {emulatorScore}, discrepancy: {discrepancy}')
 
         if discrepancy != 0.0:
             mismatches[run] += 1
@@ -85,20 +82,21 @@ def main(args):
             if discrepancy == 0.0:
                 nonZeroEventsMatches[run] += 1
         
-
-    for key in totalEvents:
+    orderedKeys = list(totalEvents.keys())
+    orderedKeys.sort()
+    for key in orderedKeys:
         display_nonZeroEvents = nonZeroEvents[key]
         display_nonZeroEventsMatches = nonZeroEventsMatches[key]
         try:
             nonZeroMatchPercent = display_nonZeroEventsMatches / display_nonZeroEvents
         except ZeroDivisionError:
-            nonZeroMatchPercent = 0.0
+            nonZeroMatchPercent = 1.0
         console.print(f'Run: {key}, mismatches: {mismatches[key]:<9}/{totalEvents[key]:>9}, {mismatches[key]/totalEvents[key]:05.2%}, non-zero emulator score matches: {nonZeroEventsMatches[key]:<9}/{nonZeroEvents[key]:>9}, {nonZeroMatchPercent:05.2%}')
     console.print(f'Number of events with emulator-firmware agreement: {noMismatchEvents}')
 
     mismatch_fractions = []
     mismatch_runs = []
-    for key in totalEvents:
+    for key in orderedKeys:
         mismatch_runs.append(key)
         mismatch_fractions.append(
             mismatches[key] / totalEvents[key]
