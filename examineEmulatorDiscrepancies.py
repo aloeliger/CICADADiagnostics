@@ -60,7 +60,7 @@ def main(args):
 
         for i in range(252):
             emuRegion = emuTree.GetLeaf("modelInput").GetValue(i)
-            unpackedRegion = emuTree.GetLeaf("modelInput").GetValue(i)
+            unpackedRegion = unpackTree.GetLeaf("modelInput").GetValue(i)
             unpackedRegions.append(unpackedRegion)
             emulatedRegions.append(emuRegion)
             regionDiscrepancies.append(emuRegion-unpackedRegion)
