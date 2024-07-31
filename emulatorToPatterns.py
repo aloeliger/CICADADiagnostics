@@ -115,9 +115,6 @@ class Link():
             return f'0x{emptyChar}{indexSixString}{indexFiveString}'
         else:
             return None
-
-class RegionPatternSet():
-    pass
         
 #class representing an event's worth of information (36 links)
 class Event():
@@ -240,6 +237,60 @@ class ModelScorePatternSet(PatternSet):
                 lineString += '\n'
                 result += lineString
         return result
+
+class RegionPatternCollection():
+    def __init__(self):
+        self.currentRegionPatternSet = None
+        self.regionPatternSets = []
+
+    def insertEvent(self, theEvent: Event):
+        if self.currentRegionPatternSet == None:
+            self.currentRegionPatternSet = RegionPatternSet()
+            self.currentRegionPatternSet.insertEvent(theEvent)
+            return
+        else:
+            if len(self.currentRegionPatternSet.events) == self.currentRegionPatternSet.requiredEvents:
+                self.regionPatternSets.append(self.currentRegionPatternSet)
+                self.currentRegionPatternSet = RegionPatternSet()
+            self.currentRegionPatternSet.insertEvent(theEvent)
+            return
+
+    def dumpOutPatternCollection(self):
+        if self.currentRegionPatternSet is not None:
+            self.regionPatternSets.append(self.currentRegionPatternSet)
+            self.currentRegionPatternSet = None
+        for index, patternSet in enumerate(self.regionPatternSets):
+            patternSet.fillEmptyEvents()
+            with open(f'testPatterns_{index}.log', 'w+') as theFile:
+                regionPatternString = patternSet.getCompletePatternString()
+                theFile.write(regionPatternString)
+
+class ModelScorePatternCollection():
+    def __init__(self):
+        self.currentModelScorePatternSet = None
+        self.modelScorePatternSets = []
+
+    def insertEvent(self, theEvent: Event):
+        if self.currentModelScorePatternSet == None:
+            self.currentModelScorePatternSet = ModelScorePatternSet()
+            self.currentModelScorePatternSet.insertEvent(theEvent)
+            return
+        else:
+            if len(self.currentModelScorePatternSet.events) == self.currentModelScorePatternSet.requiredEvents:
+                self.modelScorePatternSets.append(self.currentModelScorePatternSet)
+                self.currentModelScorePatternSet = ModelScorePatternSet()
+            self.currentModelScorePatternSet.insertEvent(theEvent)
+            return
+
+    def dumpOutPatternCollection(self):
+        if self.currentModelScorePatternSet is not None:
+            self.modelScorePatternSets.append(self.currentModelScorePatternSet)
+            self.currentModelScorePatternSet = None
+        for index, modelScorePatternSet in enumerate(self.modelScorePatternSets):
+            modelScorePatternSet.fillEmptyEvents()
+            with open(f'testPatterns_output_{index}.log','w+') as theFile:
+                modelScorePatternString = modelScorePatternSet.getCompletePatternString()
+                theFile.write(modelScorePatternString)
     
 def main(args):
     #model = from_pretrained_keras("cicada-project/cicada-v2.1")
@@ -250,8 +301,8 @@ def main(args):
 
     nEntries = emuTree.GetEntries()
 
-    regionPatterns = RegionPatternSet()
-    scorePatterns = ModelScorePatternSet()
+    regionPatterns = RegionPatternCollection()
+    scorePatterns = ModelScorePatternCollection()
     
     for entry in track(range(nEntries), description='events'):
         emuTree.GetEntry(entry)
@@ -276,18 +327,8 @@ def main(args):
         regionPatterns.insertEvent(theEvent)
         scorePatterns.insertEvent(theEvent)
         
-    regionPatterns.fillEmptyEvents()
-    scorePatterns.fillEmptyEvents()
-    patternString = regionPatterns.getCompletePatternString()
-    modelString = scorePatterns.getCompletePatternString()
-
-    #console.print(patternString)
-    with open('testPatterns.log', 'w+') as resultFile:
-        resultFile.write(patternString)
-
-    with open('testPatternOutputs.log', 'w+') as outputResultFile:
-        outputResultFile.write(modelString)
-
+    regionPatterns.dumpOutPatternCollection()
+    scorePatterns.dumpOutPatternCollection()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the emulator on L1 Ntuples, looking for discrepnacies, and making patterns from those events')
