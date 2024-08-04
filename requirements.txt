@@ -1,0 +1,5 @@
+rich
+numpy
+huggingface_hub
+termplotlib
+bitstream
