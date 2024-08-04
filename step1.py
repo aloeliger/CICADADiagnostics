@@ -108,7 +108,7 @@ def makeFEDDump(recommendedFile, outputDirectory):
     return True
 
 def makeL1Ntuple(recommendedFile, outputDirectory):
-    cmsDriverCommand = f'cmsDriver.py L1Ntuples -s RAW2DIGI,L1 --era=Run3 --data --conditions=auto:run3_data --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW,L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleRAWEMU -n -1 --filein={recommendedFile} --fileout=file:./test.root'
+    cmsDriverCommand = f'cmsDriver.py L1Ntuples -s RAW2DIGI,L1 --era=Run3 --data --conditions=140X_dataRun3_Prompt_v4 --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW,L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleRAWEMU -n -1 --filein={recommendedFile} --fileout=file:./test.root'
     theProcess = subprocess.run(
         [cmsDriverCommand],
         shell=True,
