@@ -32,6 +32,12 @@ process.maxEvents = cms.untracked.PSet(
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
+process.MessageLogger.cerr.FwkReport.reportEvery = 10000
+process.MessageLogger.suppressWarning = cms.untracked.vstring(
+    'l1UpgradeTree',
+    'l1UpgradeEmuTree',
+)
+
 # Input source
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(options.inputFiles),

@@ -87,7 +87,7 @@ def findRecommendedFile(dataset, runNumber):
     return recommendedFile
 
 def makeFEDDump(recommendedFile, outputDirectory):
-    fedDumpCommand = f'cmsRun fedDumpingTool/dumpFEDInfoFromRAW.py feds=1356,1405 inputFiles={recommendedFile} maxEvents=10'
+    fedDumpCommand = f'cmsRun fedDumpingTool/dumpFEDInfoFromRAW.py feds=1356,1404 inputFiles={recommendedFile} maxEvents=10'
     theProcess = subprocess.run(
         [fedDumpCommand],
         shell=True,

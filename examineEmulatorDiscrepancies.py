@@ -38,6 +38,8 @@ def main(args):
     emulatedRegions = []
     regionDiscrepancies=[]
     nNoDiscrepancy = 0
+    discrepantRegionPhis = []
+    discrepantRegionEtas = []
     console.print(f'Processing: {nEntries:>6d} Events')
     #for index in track(range(nEntries), description='Finding discrepancies'):
     for index in range(nEntries):
@@ -63,7 +65,13 @@ def main(args):
             unpackedRegion = unpackTree.GetLeaf("modelInput").GetValue(i)
             unpackedRegions.append(unpackedRegion)
             emulatedRegions.append(emuRegion)
-            regionDiscrepancies.append(emuRegion-unpackedRegion)
+            regionDiscrepancy = emuRegion-unpackedRegion
+            regionDiscrepancies.append(regionDiscrepancy)
+            if regionDiscrepancy != 0.0:
+                regionPhi = i % 18
+                regionEta = i // 14
+                discrepantRegionPhis.append(regionPhi)
+                discrepantRegionEtas.append(regionEta)
 
     console.print("Emulator scores")
     makeTermHistogram(emuScores)
@@ -104,6 +112,14 @@ def main(args):
 
     console.print("Region Discrepancies")
     makeTermHistogram(regionDiscrepancies)
+    console.print()
+
+    console.print("Discrepant Region Phis")
+    makeTermHistogram(discrepantRegionPhis)
+    console.print()
+
+    console.print("Discrepant Region Etas")
+    makeTermHistogram(discrepantRegionEtas)
     console.print()
 
 

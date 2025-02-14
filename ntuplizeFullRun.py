@@ -32,8 +32,8 @@ def getListOfFiles(dataset: str, runNumber: int) -> Optional[list[str]]:
 
     return dasQueryOutput
 
-def runNtuples(listOfFiles: list[str]) -> None:
-    subprocessCommand = f'cmsRun RunEmulatorNtuples.py inputFiles='+','.join(listOfFiles)+' outputFile=file:./L1Ntuple.root'
+def runNtuples(listOfFiles: list[str], outputFileName: str) -> None:
+    subprocessCommand = f'cmsRun RunEmulatorNtuples.py inputFiles='+','.join(listOfFiles)+f' outputFile=file:./{outputFileName}'
 
     theProcess=subprocess.run(
         [subprocessCommand],
@@ -60,7 +60,7 @@ def main(args) -> None:
     console.print(f'Number of files in run: {len(listOfFiles)}')
 
     console.log('Running all ntuples')
-    runNtuples(listOfFiles)
+    runNtuples(listOfFiles, args.outputFile)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Quickly ntuplize an entire runs worth of CICADA info')
@@ -70,6 +70,14 @@ if __name__ == '__main__':
         type=int,
         nargs='?',
         help='Run number to Ntuplize',
+    )
+
+    parser.add_argument(
+        '--outputFile',
+        type=str,
+        nargs='?',
+        help='Name of the output file',
+        default='L1Ntuple.root'
     )
 
     args = parser.parse_args()
